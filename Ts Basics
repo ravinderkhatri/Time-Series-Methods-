@@ -1,0 +1,66 @@
+#Basic time series model
+#White noise 
+#Random walk 
+#Autoregression 
+#Simple moving average 
+
+
+
+
+continuous_series =c(0.56889468,0.76630408, 0.99207512, 0.97481741, 0.39912320,  0.37660246, -0.38532033 ,-0.83635852 
+                     ,-0.99966983 ,-0.99831019 ,-0.64622280 ,-0.09386151 , 0.40052909 , 0.68160578 , 0.95318159 
+                     , 0.99693803  ,0.83934194 , 0.37003754,-0.25509676 ,-0.61743983)
+
+
+continuous_time_index = c(1.210322,  1.746137,  2.889634,  3.591384,  5.462065,  5.510933,  7.074295, 8.264398,  
+                          9.373382,  9.541063, 11.161122, 12.378371, 13.390559, 14.066280, 15.093547, 15.864515, 
+                          16.857413, 18.091457, 19.365451, 20.180524)
+
+# Plot the continuous_series using continuous time indexing
+par(mfrow=c(2,1))
+
+plot(continuous_time_index,continuous_series, type = "b")
+
+# Make a discrete time index using 1:20 
+discrete_time_index <-1:20
+
+# Now plot the continuous_series using discrete time indexing
+plot(discrete_time_index,continuous_series, type = "b")
+
+
+#Basic Assumption 
+#Cosecutive observation are equally spaced 
+#Apply a dicrete-time observation index 
+#This may hold approximately. Daily log returns on stock may only be available for weekdays 
+
+#start(Hourly_series)
+#end(Hourly_series)
+#frequency(Hourly_series)
+#deltat()  - 1/frequency _returns fixed time interval between the observation 
+#cycle - returns the position in the cycle of each observation 
+
+
+
+#Building ts object
+data_vector = c(10, 6, 11, 8, 10, 3, 6, 9)
+#specifying starty year = 2001 and one observation per year (frequency = 1)
+time_series = ts(data_vector) #by default R uses a simple observation index starting from one as the time index
+
+
+time_series = ts(data_vector, start = 1 ,frequency = 1)
+time_series = ts(data_vector, frequency = 12)
+
+#To check whether an object is time series 
+is.ts(data_vector)
+is.ts(time_series)
+
+eu_stocks = get(data(EuStockMarkets))
+
+ts.plot(eu_stocks, col = 1:4, xlab = "Year", ylab = "Index Value", main = "Major European Stock Indices, 1991-1998")
+
+# Add a legend to your ts.plot
+legend("topleft", colnames(eu_stocks), lty = 1, col = 1:4, bty = "n")
+
+
+
+#
