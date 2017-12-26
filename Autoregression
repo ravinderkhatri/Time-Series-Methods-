@@ -1,0 +1,122 @@
+#Autoregressive Model
+#Autoregression model - 1 
+#The Autoregressive(AR) recursion:
+#Today = Constant + Slope*Yesterday  + Noise 
+#Mean centered version of the model 
+#(Today - Mean) = Slope *(Yesterday -  Mean)  + Noise 
+
+#Autoregressive Model - 2 
+#(Today - Mean) = Slope * (Yesterday - Mean)  + Noise 
+#Where Noise is having mean zero white noise (WN)
+
+#Three parameters 
+#The mean 
+#THe slope 
+#THe WN variance 
+
+
+#if mean = 0 and slope(phi) = 1 then Y(t) = Y(t-1) + e(t)
+#which is Today = Yesterday + Noise . But this is a random walk and Y(t) is not stationarity in this case 
+
+#he versatile arima.sim() function used in previous chapters can also be used to simulate data from an AR
+#model by setting the model argument equal to list(ar = phi) ,in which phi is a slope parameter from the 
+#interval (-1, 1). We also need to specify a series length n.
+
+# Simulate an AR model with 0.5 slope
+x <- arima.sim(model = list(ar = 0.5), n = 100)
+
+# Simulate an AR model with 0.9 slope
+y <- arima.sim(model = list(ar = 0.5), n = 100)
+
+# Simulate an AR model with -0.75 slope
+z <- arima.sim(model = list(ar = -0.75), n = 100)
+
+# Plot your simulated data
+plot.ts(cbind(x, y, z))
+
+
+#Persistence and Anti-Persistence 
+#Autoregressive processes can exhibit varying level of persistence as well as anti-persistence or oscillatory behaviour
+#Persistence is defined by a high correlation between an observation and its lag, while anti-persistence is 
+#defined by a large amount of variation between an observation and its lag.
+
+#The random walk (RM) model is a special case of autoregressive(AR) model in which the slope parameter is equal to 1
+#Random walk model is not stationarity and exhibits very strong persistence. Its sample autocovariance function(ACF)
+#also decays to zero very slowly, meaning past value have a long lasting impact on current values.
+#The stationary AR model has a slope parameter between -1 and 1. The AR model exhibits higher persistence when its
+#slope paramter is closer to 1 but the process reverts to its mean fairly quickly. Its sample ACF also decays to zero
+#at quick(geometric) rate, indicating that values far in the past have little impact on future values of the process
+
+
+######################Compare the random walk (RW) and autoregressive (AR) models#####################################
+# Simulate and plot AR model with slope 0.9 
+x <- arima.sim(model = list(ar = 0.9), n = 200)
+ts.plot(x)
+acf(x)
+
+# Simulate and plot AR model with slope 0.98
+y <- arima.sim(model = list(ar = 0.98), n = 200)
+ts.plot(y)
+acf(y)
+
+# Simulate and plot RW model
+z <- arima.sim(list(order = c(0,1,0)), n = 200)
+ts.plot(z)
+acf(z)
+
+############################################End###############################################################
+
+
+##############################AR model estimation and Forecasting######################################
+data(Mishkin, package = 'Ecdat')
+inflation = as.ts(Mishkin[,1])
+ts.plot(inflation) ; acf(inflation)
+
+AR_inflation = arima(inflation, order = c(1, 0, 0)) #First order AR model 
+print(AR_inflation)
+#phi = 0.596 ; intercept = 3.9745 ; sigma^2 = 9.713
+
+#AR fitted values - 1 
+#Today = Mean + Slope * (Yesterday - Mean)
+#Residuals =  Today(Real) - Today(predicted) 
+
+#AR Processes :- Fitted Values - II
+ts.plot(inflation)
+AR_inflation_fitted = inflation - residuals(AR_inflation)
+points(AR_inflation_fitted, type = 'l', col = 'red', lty = 2)
+
+#Forecasting 
+#1-step ahead forecast 
+predict(AR_inflation)
+
+#h- month ahead forecast 
+predict(AR_inflation, n.ahead = 6)
+
+
+#arima command allows you to identify the estimated slope (ar1), mean (intercept),
+#and innovation variance (sigma^2) of the model.
+
+
+
+##########################################Simple forecasts from an estimated AR model###############################
+# Fit an AR model to Nile
+AR_fit <-arima(Nile, order  = c(1,0,0))
+print(AR_fit)
+
+# Use predict() to make a 1-step forecast
+predict_AR <- predict(AR_fit)
+
+# Obtain the 1-step forecast using $pred[1]
+predict_AR$pred[1]
+
+# Use predict to make 1-step through 10-step forecasts
+predict(AR_fit, n.ahead = 10)
+
+# Run to plot the Nile series plus the forecast and 95% prediction intervals
+ts.plot(Nile, xlim = c(1871, 1980))
+AR_forecast <- predict(AR_fit, n.ahead = 10)$pred
+AR_forecast_se <- predict(AR_fit, n.ahead = 10)$se
+points(AR_forecast, type = "l", col = 2)
+points(AR_forecast - 2*AR_forecast_se, type = "l", col = 2, lty = 2)
+points(AR_forecast + 2*AR_forecast_se, type = "l", col = 2, lty = 2)
+##################################################End####################################################
