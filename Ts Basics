@@ -63,4 +63,234 @@ legend("topleft", colnames(eu_stocks), lty = 1, col = 1:4, bty = "n")
 
 
 
-#
+#Sample Transformation 
+#log() transformation - only defined for positive value 
+#log() function can linearize a rapid growth trend 
+#log() can also stablize a series that exhibits increasing variance 
+
+
+#diff transformation - Differencing a time series can remove a time trend
+#Can remove linear trend 
+#for periodic series the diff function in R diff(... ,s)with additional  s- seasonal argument can remove periodic trend
+#this is called seasonal difference transformation 
+#The function diff(..., lag = s) will calculate the lag s difference or length s seasonal change series. 
+#For monthly or quarterly data, an appropriate value of s would be 12 or 4, respectively. 
+#The diff() function has lag = 1 as its default for first differencing.
+
+
+#White noise - simplest example of a stationarity process 
+#A weak white noise(WN) process has constant mean, constant variance and no correlation(pattern) over time 
+
+#Simulaing white noise 
+WN_1 = arima.sim(model = list(order = c(0,0,0)), n = 50)
+ts.plot(WN_1)
+
+WN_2 = arima.sim(model = list(order = c(0, 0, 0)), n  = 50, mean = 4, sd = 2)
+ts.plot(WN_2)
+
+#Estimating white noise model 
+#Fit the white noise model with arima()
+arima(WN_2, order = c(0,0,0)) #gives mean and se. 
+
+#Direclty estimate the mean and var of white noise process 
+mean(WN_2)
+var(WN_2)
+
+#For a given time series y we can fit the white noise (WN) model using the arima(..., order = c(0, 0, 0)) function.
+#Recall that the WN model is an ARIMA(0,0,0) model. Applying the arima() function returns information or output 
+#about the estimated model.
+
+#Random walk is a simple example of non-stationarity process. A random walk has no specified mean or variance 
+# and strong dependence over time however its changes or increment are white noise (WN) which is stable and 
+#stationary 
+#today = yesterday + noise 
+#simulation requires an initial point 
+#Random walk model has only one parameter i.e. the variance of white noise 
+#Y(t) = Y(t- 1) + error(t)
+#where error(t) is mean zero with white noise(WN) 
+#i.e. Y(t) - Y(t-1) = error(t) means differene or changed series is white noise 
+#So if we apply the differencing on random walk time series then the results of this is a white noise series 
+
+#Random walk with Drift 
+#Today = constant + Yesterday + Noise 
+#Y(t) = c + Y(t-1) + error(t)
+#First difference is simply a constant plus noise which is a white noise process with mean c (Constant)
+
+#Random walk is an ARIMA(0,1,0) model in which the middle entry of 1 indicates that the model's order of integration 
+# is 1 
+
+
+# Generate a RW model using arima.sim
+random_walk <- arima.sim(model = list(order = c(0,1,0)), n = 100)
+
+# Plot random_walk
+ts.plot(random_walk)
+
+# Calculate the first difference series
+random_walk_diff <- diff(random_walk, lag = 1)
+
+# Plot random_walk_diff
+ts.plot(random_walk_diff)
+
+#Great work! As you can see, the first difference of your random_walk data is white noise data. 
+#This is because a random walk is simply recursive white noise data
+#By removing the long-term trend, you end up with simple white noise.
+
+#A random walk need not wander about zero, it can have an upward or downward trajectory i.e., a drift or time trend 
+#This is done by including an intercept in the RW model, which corresponds to the slope of the RW time trend 
+#For an alternative formulation, you can take the cumulative sum of a constant mean white noise (WN) series, such
+#that the mean corresponds to the slope of the RW time trend 
+#Taking the first difference  of your random walk data transformed it back into the white noise data, regardless 
+#of the presence of your long-term drift 
+
+
+#Add the estimated time trend to the adjoining plot with the function abline().
+#You can use int_wn as the second argument.
+## Store the value of the estimated time trend (intercept)
+#int_wn <- model_wn$coef
+# Plot the original random_walk data
+#ts.plot(random_walk)
+# Use abline(0, ...) to add time trend to the figure
+#abline(0, int_wn)
+
+#if we start with a mean zero WN process and compute its running or cumulative sum, the result is a RW process.
+#The cumsum() function will make this transformation for you. Similarly, if we create a WN process, 
+#but change its mean from zero, and then compute its cumulative sum, the result is a RW process with a drift.
+
+#####################################################Example##############################################
+# Use arima.sim() to generate WN data
+white_noise <- arima.sim(list(order = c(0,0,0)), n = 100)
+
+# Use cumsum() to convert your WN data to RW
+random_walk <- cumsum(white_noise)
+
+# Use arima.sim() to generate WN drift data
+wn_drift <- arima.sim(list(order=c(0,0,0)), n = 100, mean = 0.4)
+
+# Use cumsum() to convert your WN drift data to RW
+rw_drift <- cumsum(wn_drift)
+
+# Plot all four data objects
+plot.ts(cbind(white_noise, random_walk, wn_drift, rw_drift))
+###################################################Example End###########################################
+
+
+#Stock price :- 
+ts.plot(cbind(stock_A, stock_B))
+#scatterplot of stock B vs A 
+plot(stock_A, stock_B)
+
+#Computing log return for Stock A and B 
+stock_A_logreturn = diff(log(stock_A))
+stock_B_logreturn = diff(log(stock_B))
+ts.plot(cbind(stock_A_logreturn, stock_B_logreturn)) #series appears similar 
+  
+#Scatterplot of stock B vs A log returns 
+plot(stock_A_logreturn, stock_B_logreturn)
+
+########################################## LogReturns Example ############################################
+# Plot eu_stocks
+plot(eu_stocks)
+
+# Use this code to convert prices to returns
+returns <- eu_stocks[-1,] / eu_stocks[-1860,] - 1
+
+# Convert returns to ts
+returns <- ts(returns, start = c(1991, 130), frequency = 260)
+
+# Plot returns
+plot(returns)
+
+# Use this code to convert prices to log returns
+logreturns <- diff(log(eu_stocks))
+
+# Plot logreturns
+plot(logreturns)
+############################################Example End ##################################################
+
+##########################################Plotting various plot in a single stroke using apply #######
+# Generate means from eu_percentreturns
+colMeans(eu_percentreturns)
+
+# Use apply to calculate sample variance from eu_percentreturns
+apply(eu_percentreturns, MARGIN = 2, FUN = var)
+
+# Use apply to calculate standard deviation from eu_percentreturns
+apply(eu_percentreturns, MARGIN = 2, FUN = sd)
+
+# Display a histogram of percent returns for each index
+par(mfrow = c(2,2))
+apply(eu_percentreturns, MARGIN = 2, FUN = hist, main = "", xlab = "Percentage Return")
+
+# Display normal quantile plots of percent returns for each index
+par(mfrow = c(2,2))
+apply(eu_percentreturns, MARGIN = 2, FUN = qqnorm, main = "")
+qqline(eu_percentreturns)
+##########################################End########################################################
+
+
+
+#####################################################pairs scatterplot #############################
+# Make a scatterplot of DAX and FTSE
+plot(eu_stocks[,'DAX'], eu_stocks[,'FTSE'])
+
+# Make a scatterplot matrix of eu_stocks
+pairs(eu_stocks)
+
+# Convert eu_stocks to log returns
+logreturns <- diff(log(eu_stocks))
+
+# Plot logreturns
+plot(logreturns)
+
+# Make a scatterplot matrix of logreturns
+pairs(logreturns)
+#######################################################End #########################################
+
+
+
+#####################################Covariance and Correlation #################################
+cov(stock_A, stock_B) #depends on scale of the variable 
+cor(stock_A, stock_B) #standardized version of covariance 
+cov(stock_A, stock_B) / (sd(stock_A) * sd(stock_B)) #cor(stock_A, stock_B)
+
+
+
+#########################################Autocorrelation#####################
+#Process with autocorrelation are more predictable then those with None 
+#Lag - 1 Autocorrelation 
+cor(stack_A[-100], stack_A[-1])
+
+#Lag 2 Autocorrelation 
+#Correlation of Stock A 'Today' and stock A "Two days earlier"
+cor(stock_A[-(99:100)], stock_A[-(1:2)])
+
+acf(stock_A, lag.max = 2, plot = FALSE)
+
+#########################Autocorrealtion example#######################3
+# Define x_t0 as x[-1]
+x_t0 <- x[-1]
+
+# Define x_t1 as x[-n]
+x_t1 <- x[-n]
+
+# Confirm that x_t0 and x_t1 are (x[t], x[t-1]) pairs  
+head(cbind(x_t0, x_t1))
+
+# Plot x_t0 and x_t1
+plot(x_t0, x_t1)
+
+# View the correlation between x_t0 and x_t1
+cor(x_t0, x_t1)
+
+# Use acf with x
+acf(x, lag.max = 1, plot = FALSE)
+
+# Confirm that difference factor is (n-1)/n
+cor(x_t1, x_t0) * (n-1)/n
+
+##############################################END #######################################
+#note that the two estimates(manual and automatic using acf) differ slightly as they use slightly different scalings
+#in their calculation of sample covariance, 1/(n-1) versus 1/n. Although the latter would provide a biased estimate, 
+#it is preferred in time series analysis, and the resulting autocorrelation estimates only differ by a 
+#factor of (n-1)/n
